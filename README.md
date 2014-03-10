@@ -62,9 +62,15 @@ The next step is to add a filter on “password”. To do this you will need to 
 
 StreamUDF can be a little baffeling, but look at this diagram:
 
-![Stream processing](https://github.com/aerospike/query-with-filters/blob/master/query_stream_filter.png)
+![Stream processing](query_stream_filter.png)
 
-Lets take a look at the StreamUDF written in Lua.
+The output of the query is a stream of records. This stream can be processed by zero or more of filters. As the Query runs on all nodes in the cluster, so does the filter function. 
+
+The Map function is a mechanism to collect elements from the stream to be returned, in the following code you will see that the ```map_profile``` function returns the "name" Bin value and the "password" Bin value.
+
+Finally you can supply a reduce function that can aggregate values from the map function(s). The reduct function runs on each node in the cluster and the final reduce is done on the client where it aggregates the results from each node.
+
+Lets take a look at the [StreamUDF](https://docs.aerospike.com/pages/viewpage.action?pageId=3807962) written in Lua.
 ```lua
 local function map_profile(record)
   -- Add user and password to returned map.

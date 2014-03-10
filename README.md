@@ -55,47 +55,58 @@ try {
 recordSet.close();
 }
 ```
-Both the AQL and the java code perform a simple secondary index query on “username”, but does not filter on “password”. The result is the record(s) with the matching username. This is the first pat of the solution.
+Both the AQL and the java code are semantically equivelent. Theyr perform a simple secondary index query on “username”, but do not filter on “password”. The result is the record(s) with the matching username. This is the first part of the solution.
 
-To add a filter on “password” you will need to use Aggregations and write a StreamUDF in Lua.
+###StreamUDF
+The next step is to add a filter on “password”. To do this you will need to use [Aggregations](https://docs.aerospike.com/display/V3/Aggregation+Guide) and write a [StreamUDF](https://docs.aerospike.com/pages/viewpage.action?pageId=3807962) in Lua.
 
 Lets take a look at the StreamUDF written in Lua.
 ```lua
 local function map_profile(record)
-	-- Add user and password to returned map.
-	-- Could add other record bins here as well.
-	return map {name=record.name, password=record.password}
+  -- Add user and password to returned map.
+  -- Could add other record bins here as well.
+  return map {name=record.name, password=record.password}
 end
 
-function profile_filter(stream,password)
-	local function filter_password(record)
-		return record.password == password
-	end
-	return stream : filter(filter_password) : map(map_profile)
+function check_password(stream,password)
+  local function filter_password(record)
+    return record.password == password
+  end
+  return stream : filter(filter_password) : map(map_profile)
 end
 ```
-The function profile_filter configures how the aggregation will be applied to the stream. You can see that the first parameter to this function is the stream. Look at the return statement 
-
+The function ```check_password``` configures how the aggregation will be applied to the stream. You can see that the first parameter to this function is the stream. Look at the return statement 
+```lua
 return stream : filter(filter_password) : map(map_profile)
+```
+This line configures the function ```filter_password``` as a filter function, and applies ```filter_password``` to the stream. Next it configures the function ```map_profile``` as a map function and applies it to the stream after the filter.
 
-This line configures the function filter_password as a filter function and filter_password function to the stream. Next it configures the function map_profile as a map function and applies it to the stream after the filter.
+The ```check_password``` function is applied to the stream as part of an aggregation query. 
 
-The profile_filter function is applied to the stream as part of an aggregation query. Here is how you would do it in AQL:
+###Register you StreamUDF
+Before you can use the StreamUDF, you must refister it. The above code is stored in a file named 'profile.lua'. To register this Lua package as a UDF, execute the following aql:
+```
+register module 'udf/profile.lua'
+```
+The package is installed on all nodes in the Aerospike cluster.
 
-aggregate filter_example.profile_filter('ghjks') on test.profile where username = 'Mary'
-
+##Running the query with the filter
+Here is how you would do it in AQL:
+```
+aggregate profile.check_password('ghjks') on test.profile where username = 'Mary'
+```
 and in Java:
-
+```java
 stmt = new Statement();
 stmt.setNamespace("test");
 stmt.setSetName("profile");
 stmt.setFilters(Filter.equal("username", Value.get("Mary")));
 resultSet = client.queryAggregate(null, stmt, 
-	"filter_example", "profile_filter" , Value.get("ghjks"));
+	"profile", "check_password" , Value.get("ghjks"));
 				
 try {
 	int count = 0;
-		
+			
 	while (resultSet.next()) {
 		Object object = resultSet.getObject();
 		System.out.println("Result: " + object);
@@ -105,9 +116,10 @@ try {
 	if (count == 0) {
 		System.out.println("No results returned.");			
 	}
-} finally {
+}
+finally {
 	resultSet.close();
 }
-
+```
 So what we have done is use a StreamUDF to process the output of the secondary index query to filter on a specific Bin value.
 

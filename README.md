@@ -61,7 +61,7 @@ Both the AQL and the java code are semantically equivelent. Theyr perform a simp
 The next step is to add a filter on “password”. To do this you will need to use [Aggregations](https://docs.aerospike.com/display/V3/Aggregation+Guide) and write a [StreamUDF](https://docs.aerospike.com/pages/viewpage.action?pageId=3807962) in Lua.
 
 StreamUDF can be a little baffeling, but look at this diagram:
-![Stream processing](https://github.com/aerospike/query-with-filters/edit/master/query_stream_filter.png)
+![Stream processing](https://github.com/aerospike/query-with-filters/blob/master/query_stream_filter.png)
 Lets take a look at the StreamUDF written in Lua.
 ```lua
 local function map_profile(record)

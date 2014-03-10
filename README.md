@@ -101,11 +101,11 @@ register module 'udf/profile.lua'
 The package is installed on all nodes in the Aerospike cluster.
 
 ##Running the query with the filter
-Here is how you would do it in AQL:
+Here is how you run the aggregation query in AQL:
 ```
 aggregate profile.check_password('ghjks') on test.profile where username = 'Mary'
 ```
-and in Java:
+and the same in Java:
 ```java
 stmt = new Statement();
 stmt.setNamespace("test");
@@ -132,4 +132,7 @@ finally {
 }
 ```
 So what we have done is use a StreamUDF to process the output of the secondary index query to filter on a specific Bin value.
+
+##The Code
+The code for this example is in GitHub []
 

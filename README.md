@@ -8,7 +8,7 @@ Aerospike supports specification of a secondary index to restrict the set of row
 Although a large set can be requested and filtered on the client, Aerospike allows creation of very arbitrary and flexible filters using User Defined Functions (UDFs). This allows extension of the database to very arbitrary use cases.
 
 ##Solution
-Aerospike has an Aggregation feature that can be used to address this use. Aggregations operate on, or process,  a stream using StreamUDFs. A stream is the output of a query on a secondary index. Imagine a stream of records flowing out of a query and passing through one or more StreamUDFs, and the result set being passed back to your application. See Aggregation Guide for more detailed information.  
+Aerospike has an [Aggregation](https://docs.aerospike.com/display/V3/Aggregation+Guide) feature that can be used to address this use. Aggregations operate on, or process,  a stream using StreamUDFs. A stream is the output of a query on a secondary index. Imagine a stream of records flowing out of a query and passing through one or more StreamUDFs, and the result set being passed back to your application. See Aggregation Guide for more detailed information.  
 
 ##Scenario
 You want to authenticate a user. You have user profiles in a Set “profile” and each user profile record has Bins: “username” and “password”. 
@@ -55,12 +55,14 @@ try {
 recordSet.close();
 }
 ```
-Both the AQL and the java code are semantically equivelent. Theyr perform a simple secondary index query on “username”, but do not filter on “password”. The result is the record(s) with the matching username. This is the first part of the solution.
+Both the AQL and the java code are semantically equivelent. They perform a simple secondary index query on “username”, but do not filter on “password”. The result is the record(s) with the matching username. 
+
+This is the first part of the solution.
 
 ###StreamUDF
 The next step is to add a filter on “password”. To do this you will need to use [Aggregations](https://docs.aerospike.com/display/V3/Aggregation+Guide) and write a [StreamUDF](https://docs.aerospike.com/pages/viewpage.action?pageId=3807962) in Lua.
 
-StreamUDF can be a little baffeling, but look at this diagram:
+StreamUDF can be a little baffeling, but not really, consider this diagram:
 
 ![Stream processing](query_stream_filter.png)
 
@@ -70,7 +72,7 @@ The Map function is a mechanism to collect elements from the stream to be return
 
 Finally you can supply a reduce function that can aggregate values from the map function(s). The reduct function runs on each node in the cluster and the final reduce is done on the client where it aggregates the results from each node.
 
-Lets take a look at the [StreamUDF](https://docs.aerospike.com/pages/viewpage.action?pageId=3807962) written in Lua.
+Lets take a look at the complete [StreamUDF](https://docs.aerospike.com/pages/viewpage.action?pageId=3807962) written in Lua.
 ```lua
 local function map_profile(record)
   -- Add user and password to returned map.

@@ -1,4 +1,4 @@
-#Query with filters
+#Query with multiple filters
 This example demonstrates how to query on a secondary index and apply additional predicates or filters 
 
 

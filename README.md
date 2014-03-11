@@ -136,9 +136,13 @@ So what we have done is use a StreamUDF to process the output of the secondary i
 ##The Code
 The code for this example is in GitHub [https://github.com/aerospike/query-with-filters].
 
-The Aerospike Query Language script is in the subdirectory "aql". The file [] contains aql that creates a secondary index, inserts data, registers the StreamUDF package and executes the aggregation query.
+The Aerospike Query Language script is in the subdirectory "aql". The file "AuthenticateTest.aql" contains aql that creates a secondary index, inserts data, registers the StreamUDF package and executes the aggregation query.
 
-The Lua package containing the StreamUDF is located in the "udf" subdirectory.
+To run the aql, issue the following command on a Linux machine where Aerospike is installed:
+```
+aql -f aql/AuthenticateTest.aql
+```
+The Lua package containing the StreamUDF is located in the "udf" subdirectory. The file is "profile.lua"
 
 The Java code that does the same as the AQL, is located under the "src" subdirectory. This code can be built with the maven command:
 ```

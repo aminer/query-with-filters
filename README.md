@@ -134,5 +134,18 @@ finally {
 So what we have done is use a StreamUDF to process the output of the secondary index query to filter on a specific Bin value.
 
 ##The Code
-The code for this example is in GitHub []
+The code for this example is in GitHub [https://github.com/aerospike/query-with-filters].
+
+The Aerospike Query Language script is in the subdirectory "aql". The file [] contains aql that creates a secondary index, inserts data, registers the StreamUDF package and executes the aggregation query.
+
+The Lua package containing the StreamUDF is located in the "udf" subdirectory.
+
+The Java code that does the same as the AQL, is located under the "src" subdirectory. This code can be built with the maven command:
+```
+mvn clean package
+```
+
+##Conclusion
+You can do complex queries using Aerospike. They can be simple Primary Key operations, more complex secondary index Queries or very sopisticated Aggregation queries.
+
 

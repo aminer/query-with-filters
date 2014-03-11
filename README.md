@@ -152,6 +152,6 @@ mvn clean package
 ```
 
 ##Conclusion
-You can do complex queries using Aerospike. They can be simple Primary Key operations, more complex secondary index Queries or very sopisticated Aggregation queries.
+You can do complex queries using Aerospike. They can be simple Primary Key operations, more complex secondary index Queries or very sophisticated Aggregation queries.
 
 

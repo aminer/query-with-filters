@@ -10,7 +10,7 @@ insert into test.profile (PK, username, password) values ('4', 'Mary', 'ghjks')
 insert into test.profile (PK, username, password) values ('5', 'Julie', 'zzxzxvv')
 
 print 'query on username'
-select * from test.profile where username = 'mary'
+select * from test.profile where username = 'Mary'
 
 print 'query for Mary'
 aggregate profile.check_password('ghjks') on test.profile where username = 'Mary'

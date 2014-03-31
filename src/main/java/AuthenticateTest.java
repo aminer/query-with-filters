@@ -1,17 +1,24 @@
 
-import gnu.crypto.util.Base64;
-
 import java.io.File;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
+import org.apache.commons.cli.PosixParser;
+import org.apache.log4j.Logger;
 
 import com.aerospike.client.AerospikeClient;
 import com.aerospike.client.AerospikeException;
 import com.aerospike.client.Bin;
-import com.aerospike.client.Info;
 import com.aerospike.client.Key;
 import com.aerospike.client.Language;
 import com.aerospike.client.Record;
-import com.aerospike.client.ScanCallback;
 import com.aerospike.client.Value;
+import com.aerospike.client.lua.LuaConfig;
 import com.aerospike.client.policy.Policy;
 import com.aerospike.client.policy.ScanPolicy;
 import com.aerospike.client.policy.WritePolicy;
@@ -20,11 +27,11 @@ import com.aerospike.client.query.IndexType;
 import com.aerospike.client.query.RecordSet;
 import com.aerospike.client.query.ResultSet;
 import com.aerospike.client.query.Statement;
-import com.aerospike.client.task.RegisterTask;
 import com.aerospike.client.task.IndexTask;
-import com.aerospike.client.lua.LuaConfig;
+import com.aerospike.client.task.RegisterTask;
 
 public class AuthenticateTest {
+	private static Logger log = Logger.getLogger(AuthenticateTest.class);
 	private AerospikeClient client;
 	private String seedHost;
 	private int port = 3000;
@@ -40,10 +47,39 @@ public class AuthenticateTest {
 		
 	}
 
-	public static void main(String[] args) throws AerospikeException{
-		AuthenticateTest worker = new AuthenticateTest("P3", 3000);
-		worker.run();
+	public static void main(String[] args) throws AerospikeException, ParseException{
+		Options options = new Options();
+		options.addOption("h", "host", true, "Server hostname (default: localhost)");
+		options.addOption("p", "port", true, "Server port (default: 3000)");
+		options.addOption("u", "usage", false, "Print usage.");
+
+		CommandLineParser parser = new PosixParser();
+		CommandLine cl = parser.parse(options, args, false);
+
+		if (args.length == 0 || cl.hasOption("u")) {
+			logUsage(options);
+			return;
+		}
+
+
+		String host = cl.getOptionValue("h", "127.0.0.1");
+		String portString = cl.getOptionValue("p", "3000");
+		int port = Integer.parseInt(portString);
+
+		log.info("Host: " + host);
+		log.info("Port: " + port);
+		AuthenticateTest at = new AuthenticateTest(host, port);
+		at.run();
 	}
+	private static void logUsage(Options options) {
+		HelpFormatter formatter = new HelpFormatter();
+		StringWriter sw = new StringWriter();
+		PrintWriter pw = new PrintWriter(sw);
+		String syntax = AuthenticateTest.class.getName() + " [<options>]";
+		formatter.printHelp(pw, 100, syntax, "options:", options, 0, 2, null);
+		log.info(sw.toString());
+	}
+
 	public void run() throws AerospikeException {
 		Bin[] bins = null;
 		Key key = null; 
@@ -110,11 +146,11 @@ public class AuthenticateTest {
 		// print 'query on username'
 		System.out.println("query on username");
 
-		// select * from test.profile where username = 'mary'
+		// select * from test.profile where username = 'Mary'
 		stmt = new Statement();
 		stmt.setNamespace("test");
 		stmt.setSetName("profile");
-		stmt.setFilters(Filter.equal("username", Value.get("mary")));
+		stmt.setFilters(Filter.equal("username", Value.get("Mary")));
 		// Execute the query
 		recordSet = client.query(null, stmt);
 

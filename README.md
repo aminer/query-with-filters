@@ -84,11 +84,11 @@ Registering a UDF package with a cluster checks the  syntax of the package and l
 You can do complex queries using Aerospike. They can be as simple as Primary Key operations; more complex secondary index queries; or very sophisticated Aggregations.
 
 Aerospike secondary index queries operate on the indexed Bin. You can perform equality queries on Strings:
-```
-where username = ‘bob’
+```sql
+where username = 'bob'
 ```
 or range queries on integers:
-```
+```sql
 where age between 25 and 34
 ```
 but only a single predicate.
@@ -117,11 +117,11 @@ insert into test.profile (PK, username, password) values ('5', 'Julie', 'zzxzxvv
 As the records are written, “username” Bin will be included in the secondary index “profileindex”. You can now query based on that index.
 
 AQL example:
-```
+```sql
 select * from test.profile where username = 'Mary'
 ```
 Java example:
-```
+```java
 Key key;
 Record record;
 Statement stmt = new Statement();

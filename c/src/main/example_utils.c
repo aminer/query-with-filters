@@ -583,32 +583,6 @@ example_remove_udf(aerospike* p_as, const char* udf_file_path)
 }
 
 
-//==========================================================
-// Secondary Index Registration
-//
-
-//------------------------------------------------
-// Create a numeric secondary index for a
-// specified bin in the database.
-//
-bool
-example_create_integer_index(aerospike* p_as, const char* bin,
-		const char* index)
-{
-	as_error err;
-	as_index_task task;
-
-	if (aerospike_index_create(p_as, &err, &task, NULL, g_namespace, g_set, bin, index, AS_INDEX_NUMERIC) != AEROSPIKE_OK) {
-		LOG("aerospike_index_create() returned %d - %s", err.code, err.message);
-		return false;
-	}
-
-	// Wait for the system metadata to spread to all nodes.
-	aerospike_index_create_wait(&err, &task, 0);
-
-	return true;
-}
-
 //------------------------------------------------
 // Remove a secondary index from the database.
 //

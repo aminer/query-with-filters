@@ -25,25 +25,8 @@
 // Includes
 //
 
-#include <stdbool.h>
-#include <stddef.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <time.h>
-#include <inttypes.h>
-
-#include <aerospike/aerospike.h>
 #include <aerospike/aerospike_key.h>
 #include <aerospike/aerospike_query.h>
-#include <aerospike/as_error.h>
-#include <aerospike/as_integer.h>
-#include <aerospike/as_key.h>
-#include <aerospike/as_map.h>
-#include <aerospike/as_query.h>
-#include <aerospike/as_record.h>
-#include <aerospike/as_status.h>
-#include <aerospike/as_val.h>
 #include <aerospike/as_arraylist.h>
 
 #include "example_utils.h"
@@ -78,7 +61,7 @@ int
 main(int argc, char* argv[])
 {
 	// Parse command line arguments.
-	if (! example_get_opts(argc, argv, EXAMPLE_MULTI_KEY_OPTS)) {
+	if (! example_get_opts(argc, argv, EXAMPLE_BASIC_OPTS)) {
 		exit(-1);
 	}
 
@@ -197,8 +180,6 @@ query_cb_map(const as_val* p_val, void* udata)
 		return true;
 	}
 
-	// The map keys are number tokens ("1" to "10") and each value is the total
-	// number of occurrences of the token in the records aggregated.
 	char* val_as_str = as_val_tostring(p_val);
 
 	LOG("query callback returned %s", val_as_str);
@@ -237,6 +218,7 @@ query_cb(const as_val* p_val, void* udata)
 void
 cleanup(aerospike* p_as)
 {
+	example_remove_udf(p_as, UDF_FILE_PATH);
 	example_remove_test_records(p_as);
 	example_remove_index(p_as, USERNAME_INDEX_NAME);
 	example_cleanup(p_as);

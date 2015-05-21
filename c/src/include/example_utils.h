@@ -79,7 +79,6 @@ extern uint32_t g_n_keys;
 //
 
 #define EXAMPLE_BASIC_OPTS 0
-#define EXAMPLE_MULTI_KEY_OPTS 1
 
 // Must be called first!
 bool example_get_opts(int argc, char* argv[], int which_opts);
@@ -89,11 +88,8 @@ bool example_get_opts(int argc, char* argv[], int which_opts);
 // Example Utilities
 //
 
-void example_connect_to_aerospike(aerospike* p_as);
-void example_connect_to_aerospike_with_udf_config(aerospike* p_as,
-		const char* lua_user_path);
+void example_connect_to_aerospike_with_udf_config(aerospike* p_as, const char* lua_user_path);
 void example_cleanup(aerospike* p_as);
-bool example_read_test_record(aerospike* p_as);
 void example_remove_test_record(aerospike* p_as);
 bool example_read_test_records(aerospike* p_as);
 void example_remove_test_records(aerospike* p_as);
@@ -101,5 +97,3 @@ bool example_register_udf(aerospike* p_as, const char* filename);
 bool example_remove_udf(aerospike* p_as, const char* filename);
 void example_remove_index(aerospike* p_as, const char* index);
 void example_dump_record(const as_record* p_rec);
-void example_dump_operations(const as_operations* p_ops);
-int  example_handle_udf_error(as_error* err, const char* prefix);

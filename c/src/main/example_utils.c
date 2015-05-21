@@ -27,28 +27,11 @@
 
 #include <errno.h>
 #include <getopt.h>
-#include <stdbool.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
 
-#include <aerospike/aerospike.h>
 #include <aerospike/aerospike_index.h>
 #include <aerospike/aerospike_key.h>
 #include <aerospike/aerospike_udf.h>
-#include <aerospike/as_bin.h>
-#include <aerospike/as_bytes.h>
-#include <aerospike/as_error.h>
-#include <aerospike/as_config.h>
-#include <aerospike/as_key.h>
-#include <aerospike/as_operations.h>
-#include <aerospike/as_password.h>
-#include <aerospike/as_record.h>
 #include <aerospike/as_record_iterator.h>
-#include <aerospike/as_status.h>
-#include <aerospike/as_string.h>
-#include <aerospike/as_val.h>
 
 #include "example_utils.h"
 
@@ -75,18 +58,7 @@ const struct option LONG_OPTS_BASIC[] = {
 	{ "password",	2, NULL, 'P' },
 	{ "namespace",	1, NULL, 'n' },
 	{ "set",		1, NULL, 's' },
-	{ NULL,			0, NULL, 0 }
-};
-
-const char SHORT_OPTS_MULTI_KEY[] = "h:p:U:P::n:s:";
-const struct option LONG_OPTS_MULTI_KEY[] = {
-	{ "hosts",		1, NULL, 'h' },
-	{ "port",		1, NULL, 'p' },
-	{ "user",		1, NULL, 'U' },
-	{ "password",	2, NULL, 'P' },
-	{ "namespace",	1, NULL, 'n' },
-	{ "set",		1, NULL, 's' },
-	{ NULL,			0, NULL, 0 }
+	{ NULL,			0, NULL, 0   }
 };
 
 //==========================================================
@@ -103,12 +75,12 @@ char g_namespace[MAX_NAMESPACE_SIZE];
 char g_set[MAX_SET_SIZE];
 
 //------------------------------------------------
-// The test key.
+// The key.
 //
 as_key g_key;
 
 //------------------------------------------------
-// The number of keys
+// The number of keys.
 //
 uint32_t g_n_keys;
 
@@ -159,25 +131,13 @@ example_get_opts(int argc, char* argv[], int which_opts)
 	g_port = DEFAULT_PORT;
 	strcpy(g_namespace, DEFAULT_NAMESPACE);
 	strcpy(g_set, DEFAULT_SET);
-	//strcpy(g_key_str, DEFAULT_KEY_STR);
 	g_n_keys = DEFAULT_NUM_KEYS;
 
 	const char* short_opts;
 	const struct option* long_opts;
 
-	switch (which_opts) {
-	case EXAMPLE_BASIC_OPTS:
-		short_opts = SHORT_OPTS_BASIC;
-		long_opts = LONG_OPTS_BASIC;
-		break;
-	case EXAMPLE_MULTI_KEY_OPTS:
-		short_opts = SHORT_OPTS_MULTI_KEY;
-		long_opts = LONG_OPTS_MULTI_KEY;
-		break;
-	default:
-		LOG("ERROR: unrecognized which_opts parameter");
-		return false;
-	}
+	short_opts = SHORT_OPTS_BASIC;
+	long_opts = LONG_OPTS_BASIC;
 
 	int c;
 	int i;
@@ -299,14 +259,6 @@ usage(const char* short_opts)
 // Connect/Disconnect
 //
 
-//------------------------------------------------
-// Connect to database cluster.
-//
-void
-example_connect_to_aerospike(aerospike* p_as)
-{
-	example_connect_to_aerospike_with_udf_config(p_as, NULL);
-}
 
 //------------------------------------------------
 // Connect to database cluster, setting UDF
@@ -648,82 +600,4 @@ example_dump_record(const as_record* p_rec)
 	}
 
 	as_record_iterator_destroy(&it);
-}
-
-#define OP_CASE_ASSIGN(__enum) \
-	case __enum : \
-		return #__enum; \
-
-static const char*
-operator_to_string(as_operator op)
-{
-	switch (op) {
-		OP_CASE_ASSIGN(AS_OPERATOR_READ);
-		OP_CASE_ASSIGN(AS_OPERATOR_WRITE);
-		OP_CASE_ASSIGN(AS_OPERATOR_INCR);
-		OP_CASE_ASSIGN(AS_OPERATOR_APPEND);
-		OP_CASE_ASSIGN(AS_OPERATOR_PREPEND);
-		OP_CASE_ASSIGN(AS_OPERATOR_TOUCH);
-	}
-
-	return "NOT DEFINED";
-}
-
-static void
-example_dump_op(const as_binop* p_binop)
-{
-	if (! p_binop) {
-		LOG("  null as_binop object");
-		return;
-	}
-
-	const char* op_string = operator_to_string(p_binop->op);
-
-	if (p_binop->op == AS_OPERATOR_TOUCH) {
-		LOG("  %s", op_string);
-		return;
-	}
-
-	if (p_binop->op == AS_OPERATOR_READ) {
-		LOG("  %s : %s", op_string, p_binop->bin.name);
-		return;
-	}
-
-	char* val_as_str = as_val_tostring(p_binop->bin.valuep);
-
-	LOG("  %s : %s : %s", op_string, p_binop->bin.name,
-			val_as_str);
-
-	free(val_as_str);
-}
-
-void
-example_dump_operations(const as_operations* p_ops)
-{
-	if (! p_ops) {
-		LOG("  null as_operations object");
-		return;
-	}
-
-	uint16_t num_ops = p_ops->binops.size;
-
-	LOG("  generation %u, ttl %u, %u op%s:", p_ops->gen, p_ops->ttl, num_ops,
-			num_ops == 1 ? "" : "s");
-
-	for (uint16_t n = 0; n < num_ops; n++) {
-		example_dump_op(&p_ops->binops.entries[n]);
-	}
-}
-
-int
-example_handle_udf_error(as_error* err, const char* prefix)
-{
-	if (strstr(err->message, " 1500:")) {
-		LOG("LDT not enabled on server. Skipping example.");
-		return 0;
-	}
-	else {
-		LOG("%s returned %d - %s", prefix, err->code, err->message);
-		return -1;
-	}
 }

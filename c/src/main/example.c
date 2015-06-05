@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2008-2013 by Aerospike.
+ * Copyright 2008-2015 by Aerospike.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -39,7 +39,6 @@
 #define UDF_MODULE "profile"
 #define UDF_USER_PATH "../udf/"
 const char UDF_FILE_PATH[] =  UDF_USER_PATH UDF_MODULE ".lua";
-
 const char USERNAME_INDEX_NAME[] = "profileindex";
 
 
@@ -101,12 +100,14 @@ main(int argc, char* argv[])
 		exit(-1);
 	}
 
-	LOG("\nread records");
+	LOG("read records");
 
 	if (! example_read_test_records(&as)) {
 		cleanup(&as);
 		exit(-1);
 	}
+
+	LOG("read succeeded");
 
 	// Create an as_query object.
 	as_query query;
@@ -120,8 +121,7 @@ main(int argc, char* argv[])
 
 	LOG("\nexecuting query where username = Mary");
 
-	// Execute the query. This call blocks - callbacks are made in the scope of
-	// this call.
+	// Execute the query. This call blocks - callbacks are made in the scope of this call.
 	if (aerospike_query_foreach(&as, &err, NULL, &query, query_cb, NULL) != AEROSPIKE_OK) {
 		LOG("aerospike_query_foreach() returned %d - %s", err.code, err.message);
 		as_query_destroy(&query);
@@ -142,8 +142,7 @@ main(int argc, char* argv[])
 
 	LOG("\nexecuting filter query where password = ghjks");
 
-	// Execute the query. This call blocks - callbacks are made in the scope of
-	// this call.
+	// Execute the query. This call blocks - callbacks are made in the scope of this call.
 	if (aerospike_query_foreach(&as, &err, NULL, &query, query_cb_map, NULL) != AEROSPIKE_OK) {
 		LOG("aerospike_query_foreach() returned %d - %s", err.code, err.message);
 		as_query_destroy(&query);
@@ -170,7 +169,7 @@ bool
 query_cb_map(const as_val* p_val, void* udata)
 {
 	if (! p_val) {
-		LOG("query callback returned null - query is complete");
+		LOG("query is complete");
 		return true;
 	}
 
@@ -192,7 +191,7 @@ bool
 query_cb(const as_val* p_val, void* udata)
 {
 	if (! p_val) {
-		LOG("query callback returned null - query is complete");
+		LOG("query is complete");
 		return true;
 	}
 

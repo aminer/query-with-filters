@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2008-2013 by Aerospike.
+ * Copyright 2008-2015 by Aerospike.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -46,7 +46,7 @@
 const char DEFAULT_HOST[] = "127.0.0.1";
 const int DEFAULT_PORT = 3000;
 const char DEFAULT_NAMESPACE[] = "test";
-const char DEFAULT_SET[] = "eg-set";
+const char DEFAULT_SET[] = "profile";
 const uint32_t DEFAULT_KEY_INT = 0;
 const uint32_t DEFAULT_NUM_KEYS = 5;
 
@@ -61,12 +61,13 @@ const struct option LONG_OPTS_BASIC[] = {
 	{ NULL,			0, NULL, 0   }
 };
 
+
 //==========================================================
 // Globals
 //
 
 //------------------------------------------------
-// The namespace and set used by all examples.
+// The namespace and set used by this example.
 // Created using command line options:
 // -n <namespace>
 // -s <set name>
@@ -85,7 +86,7 @@ as_key g_key;
 uint32_t g_n_keys;
 
 //------------------------------------------------
-// The host info used by all basic examples.
+// The host info used by this example.
 // Obtained using command line options:
 // -h <host name>
 // -p <port>
@@ -101,14 +102,6 @@ static int g_port;
 //
 static char g_user[AS_USER_SIZE];
 static char g_password[AS_PASSWORD_HASH_SIZE];
-
-//------------------------------------------------
-// The (string) value of the test key used by all
-// basic examples. From command line option:
-// -k <key string>
-//
-static char g_key_str[MAX_KEY_STR_SIZE];
-
 
 //==========================================================
 // Forward Declarations
@@ -180,14 +173,6 @@ example_get_opts(int argc, char* argv[], int which_opts)
 			strcpy(g_set, optarg);
 			break;
 
-		case 'k':
-			if (strlen(optarg) >= sizeof(g_key_str)) {
-				LOG("ERROR: key string exceeds max length");
-				return false;
-			}
-			strcpy(g_key_str, optarg);
-			break;
-
 		default:
 			usage(short_opts);
 			return false;
@@ -195,28 +180,28 @@ example_get_opts(int argc, char* argv[], int which_opts)
 	}
 
 	if (strchr(short_opts, 'h')) {
-		LOG("host:           %s", g_host);
+		LOG("host     : %s", g_host);
 	}
 
 	if (strchr(short_opts, 'p')) {
-		LOG("port:           %d", g_port);
+		LOG("port     : %d", g_port);
 	}
 
 	if (strchr(short_opts, 'U')) {
-		LOG("user:           %s", g_user);
+		LOG("user     : %s", g_user);
 	}
 
 	if (strchr(short_opts, 'n')) {
-		LOG("namespace:      %s", g_namespace);
+		LOG("namespace: %s", g_namespace);
 	}
 
 	if (strchr(short_opts, 's')) {
-		LOG("set name:       %s", g_set);
+		LOG("set name : %s", g_set);
 	}
 
 	// Initialize the test as_key object. We won't need to destroy it since it
 	// isn't being created on the heap or with an external as_key_value.
-	as_key_init_str(&g_key, g_namespace, g_set, g_key_str);
+	as_key_init_int64(&g_key, g_namespace, g_set, 0);
 
 	return true;
 }
@@ -265,8 +250,7 @@ usage(const char* short_opts)
 // configuration.
 //
 void
-example_connect_to_aerospike_with_udf_config(aerospike* p_as,
-		const char* lua_user_path)
+example_connect_to_aerospike_with_udf_config(aerospike* p_as, const char* lua_user_path)
 {
 	// Start with default configuration.
 	as_config cfg;
@@ -304,143 +288,6 @@ example_connect_to_aerospike_with_udf_config(aerospike* p_as,
 		LOG("aerospike_connect() returned %d - %s", err.code, err.message);
 		aerospike_destroy(p_as);
 		exit(-1);
-	}
-}
-
-//------------------------------------------------
-// Remove the test record from database, and
-// disconnect from cluster.
-//
-void
-example_cleanup(aerospike* p_as)
-{
-	// Clean up the database. Note that with database "storage-engine device"
-	// configurations, this record may come back to life if the server is re-
-	// started. That's why examples that want to start clean remove the test
-	// record at the beginning.
-	example_remove_test_record(p_as);
-
-	// Note also example_remove_test_records() is not called here - examples
-	// using multiple records call that from their own cleanup utilities.
-
-	as_error err;
-
-	// Disconnect from the database cluster and clean up the aerospike object.
-	aerospike_close(p_as, &err);
-	aerospike_destroy(p_as);
-}
-
-
-//==========================================================
-// Database Operation Helpers
-//
-
-//------------------------------------------------
-// Read the whole test record from the database.
-//
-bool
-example_read_test_record(aerospike* p_as)
-{
-	as_error err;
-	as_record* p_rec = NULL;
-
-	// Read the test record from the database.
-	if (aerospike_key_get(p_as, &err, NULL, &g_key, &p_rec) != AEROSPIKE_OK) {
-		LOG("aerospike_key_get() returned %d - %s", err.code, err.message);
-		return false;
-	}
-
-	// If we didn't get an as_record object back, something's wrong.
-	if (! p_rec) {
-		LOG("aerospike_key_get() retrieved null as_record object");
-		return false;
-	}
-
-	// Log the result.
-	LOG("record was successfully read from database:");
-	example_dump_record(p_rec);
-
-	// Destroy the as_record object.
-	as_record_destroy(p_rec);
-
-	return true;
-}
-
-//------------------------------------------------
-// Remove the test record from the database.
-//
-void
-example_remove_test_record(aerospike* p_as)
-{
-	as_error err;
-
-	// Try to remove the test record from the database. If the example has not
-	// inserted the record, or it has already been removed, this call will
-	// return as_status AEROSPIKE_ERR_RECORD_NOT_FOUND - which we just ignore.
-	aerospike_key_remove(p_as, &err, NULL, &g_key);
-}
-
-//------------------------------------------------
-// Read multiple-record examples' test records
-// from the database.
-//
-bool
-example_read_test_records(aerospike* p_as)
-{
-	// Multiple-record examples insert g_n_keys records, using integer keys from
-	// 0 to (g_n_keys - 1).
-	for (uint32_t i = 1; i <= g_n_keys; i++) {
-		as_error err;
-
-		// No need to destroy a stack as_key object, if we only use
-		// as_key_init_int64().
-		as_key key;
-		as_key_init_int64(&key, g_namespace, g_set, (int64_t)i);
-
-		as_record* p_rec = NULL;
-
-		// Read a test record from the database.
-		if (aerospike_key_get(p_as, &err, NULL, &key, &p_rec) != AEROSPIKE_OK) {
-			LOG("aerospike_key_get() returned %d - %s", err.code, err.message);
-			return false;
-		}
-
-		// If we didn't get an as_record object back, something's wrong.
-		if (! p_rec) {
-			LOG("aerospike_key_get() retrieved null as_record object");
-			return false;
-		}
-
-		// Log the result.
-		LOG("read record with key %u from database:", i);
-		example_dump_record(p_rec);
-
-		// Destroy the as_record object.
-		as_record_destroy(p_rec);
-	}
-
-	return true;
-}
-
-//------------------------------------------------
-// Remove multiple-record examples' test records
-// from the database.
-//
-void
-example_remove_test_records(aerospike* p_as)
-{
-	// Multiple-record examples insert g_n_keys records, using integer keys from
-	// 0 to (g_n_keys - 1).
-	for (uint32_t i = 1; i <= g_n_keys; i++) {
-		as_error err;
-
-		// No need to destroy a stack as_key object, if we only use
-		// as_key_init_int64().
-		as_key key;
-		as_key_init_int64(&key, g_namespace, g_set, (int64_t)i);
-
-		// Ignore errors - just trying to leave the database as we found it.
-		aerospike_key_remove(p_as, &err, NULL, &key);
 	}
 }
 
@@ -511,6 +358,132 @@ example_register_udf(aerospike* p_as, const char* udf_file_path)
 	return err.code == AEROSPIKE_OK;
 }
 
+
+//==========================================================
+// Database Operation Helpers
+//
+
+//------------------------------------------------
+// Read the whole test record from the database.
+//
+bool
+example_read_test_record(aerospike* p_as)
+{
+	as_error err;
+	as_record* p_rec = NULL;
+
+	// Read the test record from the database.
+	if (aerospike_key_get(p_as, &err, NULL, &g_key, &p_rec) != AEROSPIKE_OK) {
+		LOG("aerospike_key_get() returned %d - %s", err.code, err.message);
+		return false;
+	}
+
+	// If we didn't get an as_record object back, something's wrong.
+	if (! p_rec) {
+		LOG("aerospike_key_get() retrieved null as_record object");
+		return false;
+	}
+
+	// Destroy the as_record object.
+	as_record_destroy(p_rec);
+
+	return true;
+}
+
+
+//------------------------------------------------
+// Read multiple-record examples' test records
+// from the database.
+//
+bool
+example_read_test_records(aerospike* p_as)
+{
+	// Multiple-record examples insert g_n_keys records, using integer keys from
+	// 0 to (g_n_keys - 1).
+	for (uint32_t i = 1; i <= g_n_keys; i++) {
+		as_error err;
+
+		// No need to destroy a stack as_key object, if we only use
+		// as_key_init_int64().
+		as_key key;
+		as_key_init_int64(&key, g_namespace, g_set, (int64_t)i);
+
+		as_record* p_rec = NULL;
+
+		// Read a test record from the database.
+		if (aerospike_key_get(p_as, &err, NULL, &key, &p_rec) != AEROSPIKE_OK) {
+			LOG("aerospike_key_get() returned %d - %s", err.code, err.message);
+			return false;
+		}
+
+		// If we didn't get an as_record object back, something's wrong.
+		if (! p_rec) {
+			LOG("aerospike_key_get() retrieved null as_record object");
+			return false;
+		}
+
+		// Destroy the as_record object.
+		as_record_destroy(p_rec);
+	}
+
+	return true;
+}
+
+
+//------------------------------------------------
+// Remove a secondary index from the database.
+//
+void
+example_remove_index(aerospike* p_as, const char* index)
+{
+	as_error err;
+
+	// Ignore errors - just trying to leave the database as we found it.
+	aerospike_index_remove(p_as, &err, NULL, g_namespace, index);
+
+	// Wait for the system metadata to spread to all nodes.
+	usleep(100 * 1000);
+}
+
+
+//------------------------------------------------
+// Remove the test record from the database.
+//
+void
+example_remove_test_record(aerospike* p_as)
+{
+	as_error err;
+
+	// Try to remove the test record from the database. If the example has not
+	// inserted the record, or it has already been removed, this call will
+	// return as_status AEROSPIKE_ERR_RECORD_NOT_FOUND - which we just ignore.
+	aerospike_key_remove(p_as, &err, NULL, &g_key);
+}
+
+
+//------------------------------------------------
+// Remove multiple-record examples' test records
+// from the database.
+//
+void
+example_remove_test_records(aerospike* p_as)
+{
+	// Multiple-record examples insert g_n_keys records, using integer keys from
+	// 0 to (g_n_keys - 1).
+	for (uint32_t i = 1; i <= g_n_keys; i++) {
+		as_error err;
+
+		// No need to destroy a stack as_key object, if we only use
+		// as_key_init_int64().
+		as_key key;
+		as_key_init_int64(&key, g_namespace, g_set, (int64_t)i);
+
+		// Ignore errors - just trying to leave the database as we found it.
+		aerospike_key_remove(p_as, &err, NULL, &key);
+	}
+}
+
+
 //------------------------------------------------
 // Remove a UDF function from the database.
 //
@@ -532,22 +505,6 @@ example_remove_udf(aerospike* p_as, const char* udf_file_path)
 	usleep(100 * 1000);
 
 	return true;
-}
-
-
-//------------------------------------------------
-// Remove a secondary index from the database.
-//
-void
-example_remove_index(aerospike* p_as, const char* index)
-{
-	as_error err;
-
-	// Ignore errors - just trying to leave the database as we found it.
-	aerospike_index_remove(p_as, &err, NULL, g_namespace, index);
-
-	// Wait for the system metadata to spread to all nodes.
-	usleep(100 * 1000);
 }
 
 
@@ -600,4 +557,28 @@ example_dump_record(const as_record* p_rec)
 	}
 
 	as_record_iterator_destroy(&it);
+}
+
+
+//------------------------------------------------
+// Remove the test record from database, and
+// disconnect from cluster.
+//
+void
+example_cleanup(aerospike* p_as)
+{
+	// Clean up the database. Note that with database "storage-engine device"
+	// configurations, this record may come back to life if the server is re-
+	// started. That's why examples that want to start clean remove the test
+	// record at the beginning.
+	example_remove_test_record(p_as);
+
+	// Note also example_remove_test_records() is not called here - examples
+	// using multiple records call that from their own cleanup utilities.
+
+	as_error err;
+
+	// Disconnect from the database cluster and clean up the aerospike object.
+	aerospike_close(p_as, &err);
+	aerospike_destroy(p_as);
 }

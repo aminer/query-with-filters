@@ -77,75 +77,50 @@ Result: {password=ghjks}
 ```
 
 ####Using C code
-The C code, that does the same as AQL and Java, is located under the "c" subdirectory. 
-This code can be built:
+This library depends on the Aerospike C library, you can either download the demo package from the Aerospike [website](http://www.aerospike.com/docs/client/c/) or you can go to [GitHub](https://github.com/aerospike/aerospike-client-c) to install and follow the instructions. 
+The C code, that does the same as AQL and Java, is located under the "c" subdirectory.
+For simplicity, the Makefile assumes Lua is the default one that is included in ```aerospike.a``` library, if you want to have a different kind of Lua included please go see Aerospike [C Client](https://docs.aerospike.com/display/V3/C+Client+Guide).
+This code can be built with:
 ```
 $ make
 ```
 
-And run:
-```
-$ make run 
-```
-
 #####Options
 ```
+./target/example -u
 -h host       [default: 127.0.0.1]
 -p port       [default: 3000]
 -U username   [default: none]
 -P [password] [default: none]
 -n namespace  [default: test]
--s set name   [default: eg-set]
+-s set name   [default: profile]
 ```
 
 #####Output
 ```
-$ make run
-/target/example -h 127.0.0.1 -p 3000
-host:           127.0.0.1
-port:           3000
-user:           
-namespace:      test
-set name:       eg-set
-number of keys: 5
+host     : 127.0.0.1
+port     : 3000
+user     : 
+namespace: test
+set name : profile
 
 register ../udf/profile.lua
 create index profileindex
 insert records
 insert succeeded
-
 read records
-read record with key 1 from database:
-  generation 1, ttl 432000, 2 bins:
-  username : "Charlie"
-  password : "cpass"
-read record with key 2 from database:
-  generation 1, ttl 432000, 2 bins:
-  username : "Bill"
-  password : "hknfpkj"
-read record with key 3 from database:
-  generation 1, ttl 432000, 2 bins:
-  username : "Doug"
-  password : "dj6554"
-read record with key 4 from database:
-  generation 1, ttl 432000, 2 bins:
-  username : "Mary"
-  password : "ghjks"
-read record with key 5 from database:
-  generation 1, ttl 432000, 2 bins:
-  username : "Julie"
-  password : "zzxzxvv"
+read succeeded
 
 executing query where username = Mary
 query callback returned record:
   generation 1, ttl 432000, 2 bins:
   username : "Mary"
   password : "ghjks"
-query callback returned null - query is complete
+query is complete
 
 executing filter query where password = ghjks
 query callback returned {"password":"ghjks"}
-query callback returned null - query is complete
+query is complete
 
 query with multiple filters example successfully completed
 ```
@@ -222,25 +197,24 @@ recordSet.close();
 C example:
 ```c
 // Create an as_query object.
-  as_query query;
-  as_query_init(&query, g_namespace, g_set);
+as_query query;
+as_query_init(&query, g_namespace, g_set);
 
-  // Generate an as_query.where condition. Note that as_query_destroy() takes
-  // care of destroying all the query's member objects if necessary. However
-  // using as_query_where_inita() does avoid internal heap usage.
-  as_query_where_inita(&query, 1);
-  as_query_where(&query, "username", as_string_equals("Mary"));
+// Generate an as_query.where condition. Note that as_query_destroy() takes
+// care of destroying all the query's member objects if necessary. However
+// using as_query_where_inita() does avoid internal heap usage.
+as_query_where_inita(&query, 1);
+as_query_where(&query, "username", as_string_equals("Mary"));
 
-  LOG("\nexecuting query where username = Mary");
+LOG("\nexecuting query where username = Mary");
 
-  // Execute the query. This call blocks - callbacks are made in the scope of
-  // this call.
-  if (aerospike_query_foreach(&as, &err, NULL, &query, query_cb, NULL) != AEROSPIKE_OK) {
-    LOG("aerospike_query_foreach() returned %d - %s", err.code, err.message);
-    as_query_destroy(&query);
-    cleanup(&as);
-    exit(-1);
-  }
+// Execute the query. This call blocks - callbacks are made in the scope of this call.
+if (aerospike_query_foreach(&as, &err, NULL, &query, query_cb, NULL) != AEROSPIKE_OK) {
+  LOG("aerospike_query_foreach() returned %d - %s", err.code, err.message);
+  as_query_destroy(&query);
+  cleanup(&as);
+  exit(-1);
+}
 ```
 All code are semantically equivalent. They perform a simple secondary index query on “username”, but do not filter on “password”. The result is the record(s) with the matching username.
 
@@ -342,8 +316,7 @@ as_query_apply(&query, UDF_MODULE, "check_password", (as_list *) &args);
 
 LOG("executing filter query where password = ghjks");
 
-// Execute the query. This call blocks - callbacks are made in the scope of
-// this call.
+// Execute the query. This call blocks - callbacks are made in the scope of this call.
 if (aerospike_query_foreach(&as, &err, NULL, &query, query_cb_map, NULL) != AEROSPIKE_OK) {
     LOG("aerospike_query_foreach() returned %d - %s", err.code, err.message);
     as_query_destroy(&query);

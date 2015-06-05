@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2008-2013 by Aerospike.
+ * Copyright 2008-2015 by Aerospike.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -42,19 +42,13 @@
 
 #define LOG(_fmt, _args...) { printf(_fmt "\n", ## _args); fflush(stdout); }
 
-#ifdef SHOW_DETAIL
-#define DETAIL(_fmt, _args...) { printf(_fmt "\n", ## _args); fflush(stdout); }
-#else
-#define DETAIL(_fmt, _args...)
-#endif
-
 
 //==========================================================
 // Example Namespace and Set
 //
 
-#define MAX_NAMESPACE_SIZE 32	// based on current server limit
-#define MAX_SET_SIZE 64			// based on current server limit
+#define MAX_NAMESPACE_SIZE 32 // Based on current server limit
+#define MAX_SET_SIZE 64		  // Based on current server limit
 
 extern char g_namespace[MAX_NAMESPACE_SIZE];
 extern char g_set[MAX_SET_SIZE];
@@ -89,11 +83,11 @@ bool example_get_opts(int argc, char* argv[], int which_opts);
 //
 
 void example_connect_to_aerospike_with_udf_config(aerospike* p_as, const char* lua_user_path);
-void example_cleanup(aerospike* p_as);
-void example_remove_test_record(aerospike* p_as);
-bool example_read_test_records(aerospike* p_as);
-void example_remove_test_records(aerospike* p_as);
 bool example_register_udf(aerospike* p_as, const char* filename);
-bool example_remove_udf(aerospike* p_as, const char* filename);
+bool example_read_test_records(aerospike* p_as);
 void example_remove_index(aerospike* p_as, const char* index);
+void example_remove_test_record(aerospike* p_as);
+void example_remove_test_records(aerospike* p_as);
+bool example_remove_udf(aerospike* p_as, const char* filename);
 void example_dump_record(const as_record* p_rec);
+void example_cleanup(aerospike* p_as);

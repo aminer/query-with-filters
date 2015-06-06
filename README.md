@@ -55,19 +55,19 @@ The maven will build a runnable JAR in the target directory ```query-with-filter
  
 You can run this jar with the following command:
 ```
-java -jar query-with-filters-3.0.22-jar-with-dependencies.jar -h 192.168.180.132
+java -jar target/query-with-filters-3.0.22-jar-with-dependencies.jar
 ```
 #####Options
 ```
--h,--host <arg> Server hostname (default: localhost)
--p,--port <arg> Server port (default: 3000)
--u,--usage      Print usage.
+-h,--host <arg>  Server hostname (default: localhost)
+-p,--port <arg>  Server port (default: 3000)
+-u,--usage       Print usage
 ```
 #####Output
 ```
-$ java -jar target/query-with-filters-3.0.22-jar-with-dependencies.jar -h 192.168.180.132
-0 INFO  AuthenticateTest  - Host: 192.168.180.132
-1 INFO  AuthenticateTest  - Port: 3000
+$ java -jar target/query-with-filters-3.0.22-jar-with-dependencies.jar 
+0 INFO  AuthenticateTest  -  Host: 127.0.0.1
+1 INFO  AuthenticateTest  -  Port: 3000
 register udf/profile.lua
 create index profileindex
 add records

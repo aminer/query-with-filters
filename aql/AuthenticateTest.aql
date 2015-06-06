@@ -1,7 +1,9 @@
 print 'register udf/profile.lua'
 REGISTER module 'udf/profile.lua'
+
 print 'create index profileindex'
 CREATE INDEX profileindex ON test.profile (username) STRING
+
 print 'add records'
 insert into test.profile (PK, username, password) values ('1', 'Charlie', 'cpass')
 insert into test.profile (PK, username, password) values ('2', 'Bill', 'hknfpkj')

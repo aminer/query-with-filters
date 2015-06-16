@@ -11,7 +11,7 @@ Clone the GitHub repository using the following command:
 git clone https://github.com/aerospike/query-with-filters.git
 ```
 ###Running the example
-There are two ways to run this example: one way is through code where the data is loaded, indexed and the query is all executed using Java code via the Aerospike [Java Client](https://docs.aerospike.com/display/V3/Java+Client+Guide) API. The other way is via [Aerospike Query Language](https://docs.aerospike.com/pages/viewpage.action?pageId=3807532) (AQL), which is an SQL like language that is executed with the AQL utility.
+There are two ways to run this example: one way is through code where the data is loaded, indexed and the query is all executed using either Java code via the Aerospike [Java Client](https://docs.aerospike.com/display/V3/Java+Client+Guide) API or C code via the Aerospike [C Client](https://docs.aerospike.com/display/V3/C+Client+Guide) API. The other way is via [Aerospike Query Language](https://docs.aerospike.com/pages/viewpage.action?pageId=3807532) (AQL), which is an SQL like language that is executed with the AQL utility.
 ###Using AQL
 To load the test data using AQL and execute the example, use the following command on a Linux machine where Aerospike is installed:
 ```
@@ -55,19 +55,19 @@ The maven will build a runnable JAR in the target directory ```query-with-filter
  
 You can run this jar with the following command:
 ```
-java -jar query-with-filters-3.0.22-jar-with-dependencies.jar - h 192.168.180.132
+java -jar target/query-with-filters-3.0.22-jar-with-dependencies.jar
 ```
 #####Options
 ```
 -h,--host <arg>  Server hostname (default: localhost)
 -p,--port <arg>  Server port (default: 3000)
--u,--usage       Print usage.
+-u,--usage       Print usage
 ```
 #####Output
 ```
-$ java -jar target/query-with-filters-3.0.22-jar-with-dependencies.jar -h 192.168.180.132
-0 INFO  AuthenticateTest  - Host: 192.168.180.132
-1 INFO  AuthenticateTest  - Port: 3000
+$ java -jar target/query-with-filters-3.0.22-jar-with-dependencies.jar 
+0 INFO  AuthenticateTest  -  Host: 127.0.0.1
+1 INFO  AuthenticateTest  -  Port: 3000
 register udf/profile.lua
 create index profileindex
 add records
@@ -76,9 +76,58 @@ query for Mary
 Result: {password=ghjks}
 ```
 
-#####UDF package registration
-The Lua UDF package "profile.lua" containing the StreamUDF is located in the "udf" subdirectory. It is registered with the cluster by the AQL or the Java code. 
-Registering a UDF package with a cluster checks the  syntax of the package and loads it onto all nodes in the cluster 
+####Using C code
+This library depends on the Aerospike C library, you can either download the demo package from the Aerospike [website](http://www.aerospike.com/docs/client/c/) or you can go to [GitHub](https://github.com/aerospike/aerospike-client-c) to install and follow the instructions. 
+The C code, that does the same as AQL and Java, is located under the "c" subdirectory.
+For simplicity, the Makefile assumes Lua is the default one that is included in ```aerospike.a``` library, if you want to have a different kind of Lua included please go see Aerospike [C Client](https://docs.aerospike.com/display/V3/C+Client+Guide).
+This code can be built with:
+```
+$ make
+```
+
+#####Options
+```
+./target/example -u
+-h host       [default: 127.0.0.1]
+-p port       [default: 3000]
+-U username   [default: none]
+-P [password] [default: none]
+-n namespace  [default: test]
+-s set name   [default: profile]
+```
+
+#####Output
+```
+host     : 127.0.0.1
+port     : 3000
+user     : 
+namespace: test
+set name : profile
+
+register ../udf/profile.lua
+create index profileindex
+insert records
+insert succeeded
+read records
+read succeeded
+
+executing query where username = Mary
+query callback returned record:
+  generation 1, ttl 432000, 2 bins:
+  username : "Mary"
+  password : "ghjks"
+query is complete
+
+executing filter query where password = ghjks
+query callback returned {"password":"ghjks"}
+query is complete
+
+query with multiple filters example successfully completed
+```
+
+####UDF package registration
+The Lua UDF package "profile.lua" containing the StreamUDF is located in the "udf" subdirectory. It is registered with the cluster by the AQL, the Java code or the C code. 
+Registering a UDF package with a cluster checks the syntax of the package and loads it onto all nodes in the cluster. 
 
 ##Discussion
 You can do complex queries using Aerospike. They can be as simple as Primary Key operations; more complex secondary index queries; or very sophisticated Aggregations.
@@ -144,7 +193,30 @@ try {
 recordSet.close();
 }
 ```
-Both the AQL and the Java code are semantically equivalent. They perform a simple secondary index query on “username”, but do not filter on “password”. The result is the record(s) with the matching username.
+
+C example:
+```c
+// Create an as_query object.
+as_query query;
+as_query_init(&query, g_namespace, g_set);
+
+// Generate an as_query.where condition. Note that as_query_destroy() takes
+// care of destroying all the query's member objects if necessary. However
+// using as_query_where_inita() does avoid internal heap usage.
+as_query_where_inita(&query, 1);
+as_query_where(&query, "username", as_string_equals("Mary"));
+
+LOG("\nexecuting query where username = Mary");
+
+// Execute the query. This call blocks - callbacks are made in the scope of this call.
+if (aerospike_query_foreach(&as, &err, NULL, &query, query_cb, NULL) != AEROSPIKE_OK) {
+  LOG("aerospike_query_foreach() returned %d - %s", err.code, err.message);
+  as_query_destroy(&query);
+  cleanup(&as);
+  exit(-1);
+}
+```
+All code are semantically equivalent. They perform a simple secondary index query on “username”, but do not filter on “password”. The result is the record(s) with the matching username.
 
 Data has been inserted, and you have done a simple query with the index. This is only the first part of the solution - we need to add filters.
 
@@ -233,8 +305,23 @@ finally {
     resultSet.close();
 }
 ```
+
+And in C:
+```c
+as_arraylist args;
+as_arraylist_init(&args, 1, 0);
+as_arraylist_append_str(&args, "ghjks");
+
+as_query_apply(&query, UDF_MODULE, "check_password", (as_list *) &args);
+
+LOG("executing filter query where password = ghjks");
+
+// Execute the query. This call blocks - callbacks are made in the scope of this call.
+if (aerospike_query_foreach(&as, &err, NULL, &query, query_cb_map, NULL) != AEROSPIKE_OK) {
+    LOG("aerospike_query_foreach() returned %d - %s", err.code, err.message);
+    as_query_destroy(&query);
+    cleanup(&as);
+    exit(-1);
+}
+```
 This example demonstrates how to use a StreamUDF to process the output of the secondary index query to filter on a specific Bin value. 
-
-
-
-

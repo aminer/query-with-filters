@@ -129,7 +129,7 @@ query with multiple filters example successfully completed
 The Lua UDF package "profile.lua" containing the StreamUDF is located in the "udf" subdirectory. It is registered with the cluster by the AQL, the Java code or the C code. 
 Registering a UDF package with a cluster checks the syntax of the package and loads it onto all nodes in the cluster. 
 
-#Discussion
+##Discussion
 You can do complex queries using Aerospike. They can be as simple as Primary Key operations; more complex secondary index queries; or very sophisticated Aggregations.
 
 Aerospike secondary index queries operate on the indexed Bin. You can perform equality queries on Strings:

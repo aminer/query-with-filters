@@ -48,7 +48,9 @@ import com.aerospike.client.task.RegisterTask;
 public class AuthenticateTest {
 	private static Logger log = Logger.getLogger(AuthenticateTest.class);
 	private AerospikeClient client;
+	@SuppressWarnings("unused")
 	private String seedHost;
+	@SuppressWarnings("unused")
 	private int port = 3000;
 	private Policy policy;
 	private WritePolicy writePolicy;
@@ -66,7 +68,6 @@ public class AuthenticateTest {
 		options.addOption("h", "host", true, "Server hostname (default: localhost)");
 		options.addOption("p", "port", true, "Server port (default: 3000)");
 		options.addOption("u", "usage", false, "Print usage");
-
 		CommandLineParser parser = new PosixParser();
 		CommandLine cl = parser.parse(options, args, false);
 
@@ -78,7 +79,6 @@ public class AuthenticateTest {
 		String host = cl.getOptionValue("h", "127.0.0.1");
 		String portString = cl.getOptionValue("p", "3000");
 		int port = Integer.parseInt(portString);
-
 		log.info(" Host: " + host);
 		log.info(" Port: " + port);
 		AuthenticateTest at = new AuthenticateTest(host, port);
@@ -94,6 +94,7 @@ public class AuthenticateTest {
 	}
 
 	public void run() throws AerospikeException {
+		@SuppressWarnings("unused")
 		Key key = null; 
 		Record record = null;
 		RecordSet recordSet = null;
@@ -102,9 +103,10 @@ public class AuthenticateTest {
 		File udfFile = null;
 		RegisterTask task =	null;
 		IndexTask indexTask = null;
-		LuaConfig.SourceDirectory = "udf"; // change this to match your UDF directory 
+		// Change this to match your UDF directory. 
+		LuaConfig.SourceDirectory = "udf";
 		
-		// print 'register udf/profile.lua'
+		// Print 'register udf/profile.lua'.
 		System.out.println("register udf/profile.lua");
 
 		// REGISTER module 'udf/profile.lua'
@@ -112,74 +114,74 @@ public class AuthenticateTest {
 		task = this.client.register(null, udfFile.getPath(), udfFile.getName(), Language.LUA); 
 		task.waitTillComplete();
 
-		// print 'create index profileindex'
+		// Print 'create index profileindex'.
 		System.out.println("create index profileindex");
 
 		// CREATE INDEX profileindex ON test.profile (username) STRING
 		indexTask = this.client.createIndex(this.policy, "test", "profile", "profileindex", "username", IndexType.STRING);
 		indexTask.waitTillComplete();
 						
-		// print 'add records'
+		// Print 'add records'.
 		System.out.println("add records");
 
-		// insert into test.profile (PK, username, password) values ('1', 'Charlie', 'cpass')
+		// INSERT INTO test.profile (PK, username, password) VALUES ('1', 'Charlie', 'cpass')
 		this.client.put(this.writePolicy, new Key("test", "profile", Value.get("1")), 
 			new Bin("username", Value.get("Charlie")),
 			new Bin("password", Value.get("cpass"))
 			);
 					
-		// insert into test.profile (PK, username, password) values ('2', 'Bill', 'hknfpkj')
+		// INSERT INTO test.profile (PK, username, password) VALUES ('2', 'Bill', 'hknfpkj')
 		this.client.put(this.writePolicy, new Key("test", "profile", Value.get("2")), 
 			new Bin("username", Value.get("Bill")),
 			new Bin("password", Value.get("hknfpkj"))
 			);
 					
-		// insert into test.profile (PK, username, password) values ('3', 'Doug', 'dj6554')
+		// INSERT INTO test.profile (PK, username, password) VALUES ('3', 'Doug', 'dj6554')
 		this.client.put(this.writePolicy, new Key("test", "profile", Value.get("3")), 
 			new Bin("username", Value.get("Doug")),
 			new Bin("password", Value.get("dj6554"))
 			);
 					
-		// insert into test.profile (PK, username, password) values ('4', 'Mary', 'ghjks')
+		// INSERT INTO test.profile (PK, username, password) VALUES ('4', 'Mary', 'ghjks')
 		this.client.put(this.writePolicy, new Key("test", "profile", Value.get("4")), 
 			new Bin("username", Value.get("Mary")),
 			new Bin("password", Value.get("ghjks"))
 			);
 					
-		// insert into test.profile (PK, username, password) values ('5', 'Julie', 'zzxzxvv')
+		// INSERT INTO test.profile (PK, username, password) VALUES ('5', 'Julie', 'zzxzxvv')
 		this.client.put(this.writePolicy, new Key("test", "profile", Value.get("5")), 
 			new Bin("username", Value.get("Julie")),
 			new Bin("password", Value.get("zzxzxvv"))
 			);
 					
-		// print 'query on username'
+		// Print 'query on username'.
 		System.out.println("query on username");
 
-		// select * from test.profile where username = 'Mary'
+		// SELECT * FROM test.profile WHERE username = 'Mary'
 		stmt = new Statement();
 		stmt.setNamespace("test");
 		stmt.setSetName("profile");
 		stmt.setFilters(Filter.equal("username", Value.get("Mary")));
 		
-		// Execute the query
+		// Execute the query.
 		recordSet = client.query(null, stmt);
 
-		// Process the record set
+		// Process the record set.
 		try {
 			while (recordSet != null && recordSet.next()) {
 				key = recordSet.getKey();
 				record = recordSet.getRecord();
 				System.out.println("Record: " + record);
 			}
-		}
+		} 
 		finally {
 			recordSet.close();
 		}
 
-		// print 'query for Mary'
+		// Print 'query for Mary'.
 		System.out.println("query for Mary");
 
-		// aggregate profile.check_password('ghjks') on test.profile where username = 'Mary'
+		// AGGREGATE profile.check_password('ghjks') ON test.profile WHERE username = 'Mary'
 		stmt = new Statement();
 		stmt.setNamespace("test");
 		stmt.setSetName("profile");
@@ -202,12 +204,12 @@ public class AuthenticateTest {
 		finally {
 			resultSet.close();
 		}
-		// Total AQL statements: 14
+		// Total AQL statements: 14.
 	}
 	
 	protected void finalize() throws Throwable {
 	    if (this.client != null) {
-	        this.client.close();
+	    	this.client.close();
 	        this.client = null;
 	    }
 	}
@@ -215,11 +217,14 @@ public class AuthenticateTest {
 	protected void printInfo(String title, String infoString) {
 		String[] outerParts = infoString.split(";");
 		System.out.println(title);
+		
 		for (String s : outerParts) {
 			String[] innerParts = s.split(":");
+			
 			for (String parts : innerParts) {
 				System.out.println("\t" + parts);
 			}
+			
 			System.out.println();
 		}
 	}

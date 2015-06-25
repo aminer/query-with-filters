@@ -277,7 +277,7 @@ The aggregation query can be run through the AQL tool as an example, or programm
 ```sql
 AGGREGATE profile.check_password('ghjks') ON test.profile WHERE username = 'Mary'
 ```
-Where ```profile``` is the UDF package, ```check_password``` is the function to be called with the parameter of ```'ghjks'``` which is the user’s password, ```test.profile``` is the namespace and set where the data is stored, and finally ```username``` is the Bin name used in the query. 
+Where ```profile``` is the UDF package, ```check_password``` is the function to be called with the parameter of ```'ghjks'``` which is the user’s password, ```test.profile``` is the namespace and set where the data is stored, and finally ```username``` is the Bin name used in the query.    
 The same functionality in Java:
 ```java
 stmt = new Statement();

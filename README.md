@@ -1,4 +1,4 @@
-#Query with multiple filters
+#Query with Multiple Filters
 ##Problem
 You want to authenticate a username and password stored in Aerospike and need to query Aerospike with multiple predicates.
 ##Solution
@@ -11,7 +11,7 @@ Clone the GitHub repository using the following command:
 git clone https://github.com/aerospike/query-with-filters.git
 ```
 ##Running the Example
-There are two ways to run this example: one way is through code where the data is loaded, indexed and the query is all executed using either Java code via the [Aerospike Java Client](https://docs.aerospike.com/display/V3/Java+Client+Guide) API or C code via the [Aerospike C Client](https://docs.aerospike.com/display/V3/C+Client+Guide) API. The other way is via [Aerospike Query Language](https://docs.aerospike.com/pages/viewpage.action?pageId=3807532) (AQL), which is an SQL like language that is executed with the AQL utility.
+There are two ways to run this example: one way is through code where the data is loaded, indexed and the query is all executed using either Java code via the [Aerospike Java Client](http://www.aerospike.com/docs/client/java/) API or C code via the [Aerospike C Client](http://www.aerospike.com/docs/client/c/) API. The other way is via [Aerospike Query Language](http://www.aerospike.com/docs/tools/aql/) (AQL), which is an SQL like language that is executed with the AQL utility.
 ###Using AQL
 To load the test data using AQL and execute the example, use the following command on a Linux machine where Aerospike is installed:
 ```
@@ -79,7 +79,7 @@ Result: {password=ghjks}
 ###Using C Code
 This library depends on the Aerospike C library, you can either download the demo package from the Aerospike [website](http://www.aerospike.com/docs/client/c/) or you can go to [GitHub](https://github.com/aerospike/aerospike-client-c) to install and follow the instructions. 
 The C code, that does the same as AQL and Java, is located under the "c" subdirectory.
-For simplicity, the Makefile assumes Lua is the default one that is included in ```aerospike.a``` library, if you want to have a different kind of Lua included please go see [Aerospike C Client](https://docs.aerospike.com/display/V3/C+Client+Guide).
+For simplicity, the Makefile assumes Lua is the default one that is included in ```aerospike.a``` library, if you want to have a different kind of Lua included please go see [Aerospike C Client](http://www.aerospike.com/docs/client/c/).
 This code can be built with:
 ```
 make
@@ -142,13 +142,13 @@ WHERE age between 25 AND 34
 ```
 but only a single predicate.
 
-Although a large set of data can be requested and filtered in the client application, Aerospike allows creation of very arbitrary and flexible filters using [User Defined Functions](https://docs.aerospike.com/display/V3/User-Defined+Function+Guide). These filters are executed on the server, thereby saving the network trip to the client application and allowing the extension of the database to very arbitrary use cases. 
+Although a large set of data can be requested and filtered in the client application, Aerospike allows creation of very arbitrary and flexible filters using [User Defined Functions](https://www.aerospike.com/docs/udf/udf_guide.html). These filters are executed on the server, thereby saving the network trip to the client application and allowing the extension of the database to very arbitrary use cases. 
 
-This feature is called [Aggregations](https://docs.aerospike.com/display/V3/Aggregation+Guide), and it is used in conjunction with a query. Aggregations operate on, or process, a stream of data using [StreamUDFs](https://docs.aerospike.com/display/V3/Aggregation+Guide). A stream is the output of a query on a secondary index. Imagine a stream of records flowing out of a query and passing through one or more [StreamUDFs](https://docs.aerospike.com/display/V3/Aggregation+Guide), and the result set being passed back to your application.
+This feature is called [Aggregations](http://www.aerospike.com/docs/guide/aggregation.html), and it is used in conjunction with a query. Aggregations operate on, or process, a stream of data using [StreamUDFs](https://www.aerospike.com/docs/udf/developing_stream_udfs.html). A stream is the output of a query on a secondary index. Imagine a stream of records flowing out of a query and passing through one or more [StreamUDFs](https://www.aerospike.com/docs/udf/developing_stream_udfs.html), and the result set being passed back to your application.
  
-You can add filters to this stream. A filter allows some records to be filtered out, or removed from from the stream, and allows others to pass through.
+You can add filters to this stream. A filter allows some records to be filtered out, or removed from the stream, and allows others to pass through.
 
-See the [Aggregation Guide](https://docs.aerospike.com/display/V3/Aggregation+Guide) for more detailed information.
+See the [Aggregation Guide](http://www.aerospike.com/docs/guide/aggregation.html) for more detailed information.
 ##Example
 To illustrate this use, let’s construct a scenario. You want to authenticate a user, which is done with a username and password. You have user profiles in a Set “profile” and each user profile record has Bins: “username” and “password”. You wish to return a user record where both the username and password match the user’s authentication, even if there are multiple users with the same username.
 
@@ -222,7 +222,7 @@ All codes are semantically equivalent. They perform a simple secondary index que
 Data has been inserted, and you have done a simple query with the index. This is only the first part of the solution - we need to add filters.
 
 ##Adding Filters with StreamUDF
-The second part of the solution is to add a filter on “password”. To do this you will need to use [Aggregations](https://docs.aerospike.com/display/V3/Aggregation+Guide) and write a [StreamUDF](https://docs.aerospike.com/pages/viewpage.action?pageId=3807962) in Lua.
+The second part of the solution is to add a filter on “password”. To do this you will need to use [Aggregations](http://www.aerospike.com/docs/guide/aggregation.html) and write a [StreamUDF](https://www.aerospike.com/docs/udf/developing_stream_udfs.html) in Lua.
 
 StreamUDF can seem a little baffling, but not really, consider this diagram:
 
@@ -236,7 +236,7 @@ Finally, you can supply a Reduce function that can aggregate values from the map
 
 We will use the query (described above) to locate the correct username, then we will pass the output of the query (the stream) through a filter that compares the password parameter to the value stored in the record. The filter returns a boolean value, true if the record should be passed on in the stream, false if the record should be filtered out. 
  
-Let’s look at the complete [StreamUDF](https://docs.aerospike.com/pages/viewpage.action?pageId=3807962) written in Lua. 
+Let’s look at the complete [StreamUDF](https://www.aerospike.com/docs/udf/developing_stream_udfs.html) written in Lua. 
 ```lua
 local function map_profile(record)
     -- Add user and password to returned map.

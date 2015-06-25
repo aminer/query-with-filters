@@ -268,7 +268,10 @@ Next it configures the function ```map_profile``` as a map function and applies 
 The ```check_password``` function receives the output of the query via the ```stream``` parameter, and the password in the ```password``` parameter. This function returns the stream that has been processed by the filter and map functions. In our case, the final stream will contain only the matched username and password if successful and nothing if unsuccessful.
 
 ###Register your StreamUDF
-Before you can use the StreamUDF, you must register the Lua functions that will be used during the query. In the code repository, the above code is stored in a file named "profile.lua". To register this Lua package as a UDF, execute the following AQL: ```register module 'profile.lua'```.
+Before you can use the StreamUDF, you must register the Lua functions that will be used during the query. In the code repository, the above code is stored in a file named "profile.lua". To register this Lua package as a UDF, execute the following AQL:      
+```sql
+REGISTER module 'profile.lua'
+```
 
 Using Aerospike’s distributed algorithm, this file is installed on all nodes in the Aerospike cluster. The file persists in this version even as nodes are added and removed, and the module can be removed with the AQL tool.
 

@@ -5,14 +5,14 @@ print 'create index profileindex'
 CREATE INDEX profileindex ON test.profile (username) STRING
 
 print 'add records'
-insert into test.profile (PK, username, password) values ('1', 'Charlie', 'cpass')
-insert into test.profile (PK, username, password) values ('2', 'Bill', 'hknfpkj')
-insert into test.profile (PK, username, password) values ('3', 'Doug', 'dj6554')
-insert into test.profile (PK, username, password) values ('4', 'Mary', 'ghjks')
-insert into test.profile (PK, username, password) values ('5', 'Julie', 'zzxzxvv')
+INSERT INTO test.profile (PK, username, password) VALUES ('1', 'Charlie', 'cpass')
+INSERT INTO test.profile (PK, username, password) VALUES ('2', 'Bill', 'hknfpkj')
+INSERT INTO test.profile (PK, username, password) VALUES ('3', 'Doug', 'dj6554')
+INSERT INTO test.profile (PK, username, password) VALUES ('4', 'Mary', 'ghjks')
+INSERT INTO test.profile (PK, username, password) VALUES ('5', 'Julie', 'zzxzxvv')
 
 print 'query on username'
-select * from test.profile where username = 'Mary'
+SELECT * FROM test.profile WHERE username = 'Mary'
 
 print 'query for Mary'
-aggregate profile.check_password('ghjks') on test.profile where username = 'Mary'
+AGGREGATE profile.check_password('ghjks') ON test.profile WHERE username = 'Mary'

@@ -1,7 +1,7 @@
 local function map_profile(record)
-  -- Add user and password to returned map.
+  -- Add username and password to returned map.
   -- Could add other record bins here as well.
-  return map {name=record.name, password=record.password}
+  return map {username=record.username, password=record.password}
 end
 
 function check_password(stream,password)

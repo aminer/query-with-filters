@@ -38,13 +38,12 @@ OK, 1 record affected.
 SELECT * FROM test.profile WHERE username = 'Mary'
 1 rows in set (0.004 secs)
 AGGREGATE profile.check_password('ghjks') ON test.profile WHERE username = 'Mary'
-+--------------------------+
-| check_password           |
-+--------------------------+
-| Map("password"->"ghjks") |
-+--------------------------+
-1 row in set (0.023 secs)
-1 row in set (0.023 secs)
++-----------------------------------------+
+| check_password                          |
++-----------------------------------------+
+| {"username":"Mary", "password":"ghjks"} |
++-----------------------------------------+
+1 row in set (0.003 secs)
 ```
 ###Using Java Code
 The Java code, that does the same as the AQL, is located under the "src" subdirectory. This code can be built with the maven command:
@@ -72,8 +71,9 @@ register udf/profile.lua
 create index profileindex
 add records
 query on username
+Record: (gen:5),(exp:200894880),(bins:(password:ghjks),(username:Mary))
 query for Mary
-Result: {password=ghjks}
+Result: {password=ghjks, username=Mary}
 ```
 
 ###Using C Code
@@ -119,7 +119,7 @@ query callback returned record:
 query is complete
 
 executing filter query where password = ghjks
-query callback returned {"password":"ghjks"}
+query callback returned {"username":"Mary", "password":"ghjks"}
 query is complete
 
 query with multiple filters example successfully completed
